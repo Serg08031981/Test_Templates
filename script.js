@@ -170,38 +170,67 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Обработка отправки формы
-    contactForm.addEventListener('submit', function (e) {
-        e.preventDefault();
+    contactForm.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    
+    // Проверка поддержки API
+    if (typeof emailjs === 'undefined') {
+        alert('Система отправки сообщений недоступна. Пожалуйста, используйте прямой email: standard_doc@list.ru');
+        return;
+    }
 
-        // Показать модальное окно отправки
-        const sendingModal = document.getElementById('sendingModal');
-        sendingModal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-
+    // Показать окно отправки
+    const sendingModal = document.getElementById('sendingModal');
+    sendingModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    try {
+        // Получить данные формы
         const message = document.getElementById('message').value;
         const userEmail = document.getElementById('email').value;
-
+        
+        if (!navigator.onLine) {
+            throw new Error('Нет подключения к интернету');
+        }
+        
         const templateParams = {
             from_email: "standard_doc@list.ru",
             reply_to: userEmail,
             message: message
         };
-
-        emailjs.send('service_85os374', 'template_7viyzz9', templateParams)
-            .then(function (response) {
-                // Скрыть модальное окно отправки
-                sendingModal.classList.remove('active');
-
-                alert('Сообщение успешно отправлено!');
-                contactForm.reset();
-                closeModal();
-            }, function (error) {
-                // Скрыть модальное окно отправки
-                sendingModal.classList.remove('active');
-
-                alert('Ошибка при отправке: ' + error.text);
-            });
-    });
+        
+        // Логирование для отладки
+        console.log('Отправка письма с параметрами:', templateParams);
+        
+        // Отправка с таймаутом
+        const response = await Promise.race([
+            emailjs.send('service_85os374', 'template_7viyzz9', templateParams),
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Таймаут отправки')), 15000)
+            )
+        ]);
+        
+        sendingModal.classList.remove('active');
+        alert('Сообщение успешно отправлено!');
+        contactForm.reset();
+        closeModal();
+    } catch (error) {
+        sendingModal.classList.remove('active');
+        console.error('Ошибка отправки:', error);
+        
+        let errorMessage = 'Не удалось отправить сообщение. ';
+        
+        if (error.message.includes('Таймаут')) {
+            errorMessage += 'Сервер не ответил вовремя. ';
+        } else if (error.message.includes('интернет')) {
+            errorMessage += 'Нет подключения к интернету. ';
+        }
+        
+        errorMessage += 'Попробуйте позже или напишите напрямую на standard_doc@list.ru';
+        
+        alert(errorMessage);
+    }
+});
 });
 
 //  В яндекс метрике обработка кликов Скачать
