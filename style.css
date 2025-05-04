@@ -52,6 +52,11 @@ button {
     color: #2B579A;
 }
 
+.logo span {
+    display: inline;
+    white-space: nowrap;
+}
+
 /* ===== Навигация ===== */
 .navbar ul {
     display: flex;
@@ -649,9 +654,9 @@ button {
     }
 
     .logo {
-        width: 100%;
-        justify-content: center;
-        margin-bottom: 15px;
+        width: auto;
+        justify-content: flex-start;
+        margin-bottom: 0;
     }
 
     /* .navbar {
