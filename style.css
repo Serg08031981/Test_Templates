@@ -131,12 +131,12 @@ button {
 }
 
 /* ===== Бургер-меню ===== */
-.menu-toggle {
+/* .menu-toggle {
     display: none;
     cursor: pointer;
     font-size: 24px;
     color: #2B579A;
-}
+} */
 
 /* ===== Герой-секция ===== */
 .hero {
@@ -720,12 +720,12 @@ button {
         max-width: 300px;
     }
 
-    .menu-toggle {
+    /* .menu-toggle {
         display: block;
         position: absolute;
         top: 15px;
         right: 20px;
-    }
+    } */
 
     .video-guide h2,
     .download-section h2,
@@ -756,9 +756,9 @@ button {
         line-height: 1.3;
     }
 
-    .menu-toggle {
+    /* .menu-toggle {
         top: 20px;
-    }
+    } */
 }
 
 @media (max-width: 576px) {
