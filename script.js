@@ -3,6 +3,7 @@
 // Основные элементы
 const pageTransition = document.getElementById('pageTransition');
 const navbar = document.querySelector('.navbar');
+const menuToggle = document.getElementById('menuToggle');
 
 // Состояние приложения
 let isTransitioning = false;
@@ -24,6 +25,9 @@ function initApp() {
 
 // Настройка всех обработчиков событий
 function setupEventListeners() {
+    // Бургер-меню
+    menuToggle.addEventListener('click', toggleMenu);
+
     // Навигационные ссылки
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', handleNavLinkClick);
@@ -120,6 +124,11 @@ function setupCardHoverEffects(card) {
         card.style.transform = 'translateY(0)';
         card.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
     });
+}
+
+// Переключение меню
+function toggleMenu() {
+    navbar.classList.toggle('active');
 }
 
 // Запуск приложения при загрузке DOM
