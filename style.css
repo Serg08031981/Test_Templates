@@ -50,11 +50,22 @@ button {
     font-size: 20px;
     font-weight: bold;
     color: #2B579A;
+    max-width: 100%;
 }
 
 .logo span {
-    display: inline;
-    white-space: nowrap;
+    display: inline-block;
+    white-space: normal !important;
+    /* Принудительный перенос */
+    word-wrap: break-word;
+    /* Перенос длинных слов */
+    word-break: break-word;
+    /* Альтернативный вариант переноса */
+    overflow-wrap: break-word;
+    /* Современный аналог word-wrap */
+    line-height: 1.3;
+    min-width: 0;
+    /* Критически важно для flex-контекста */
 }
 
 /* ===== Навигация ===== */
@@ -654,9 +665,15 @@ button {
     }
 
     .logo {
-        width: auto;
-        justify-content: flex-start;
-        margin-bottom: 0;
+        flex-wrap: wrap;
+        /* Разрешаем перенос */
+    }
+
+    .logo span {
+        flex: 1 1 100%;
+        /* Занимает всю ширину при переносе */
+        max-width: calc(100% - 40px);
+        /* Ширина минус иконка и отступы */
     }
 
     /* .navbar {
@@ -771,12 +788,8 @@ button {
 @media (max-width: 576px) {
 
     .logo {
-        gap: 8px;
         font-size: 18px;
-    }
-
-    .logo span {
-        font-size: 0.9em;
+        gap: 8px;
     }
 
     .hero h1 {
