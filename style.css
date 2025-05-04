@@ -654,12 +654,12 @@ button {
         margin-bottom: 15px;
     }
 
-    .navbar {
+/*     .navbar {
         display: none;
         width: 100%;
-    }
+    } */
 
-    .navbar.active {
+    .navbar {
         display: block;
     }
 
