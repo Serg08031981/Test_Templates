@@ -3,7 +3,6 @@
 // Основные элементы
 const pageTransition = document.getElementById('pageTransition');
 const navbar = document.querySelector('.navbar');
-// const menuToggle = document.getElementById('menuToggle');
 
 // Состояние приложения
 let isTransitioning = false;
@@ -25,9 +24,6 @@ function initApp() {
 
 // Настройка всех обработчиков событий
 function setupEventListeners() {
-    // Бургер-меню
-    // menuToggle.addEventListener('click', toggleMenu);
-
     // Навигационные ссылки
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', handleNavLinkClick);
@@ -84,7 +80,6 @@ function navigateTo(url) {
     startPageTransition();
 
     setTimeout(() => {
-        // Для главной страницы используем replaceState
         if (url === 'index.html') {
             history.replaceState(null, '', url);
         } else {
@@ -126,11 +121,6 @@ function setupCardHoverEffects(card) {
     });
 }
 
-// // Переключение меню
-// function toggleMenu() {
-//     navbar.classList.toggle('active');
-// }
-
 // Запуск приложения при загрузке DOM
 document.addEventListener('DOMContentLoaded', initApp);
 
@@ -142,9 +132,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const contactLink = document.getElementById('contactDeveloper');
     const closeBtn = document.querySelector('.close-modal');
     const contactForm = document.getElementById('contactForm');
-
-    // Инициализация MailJS (замените YOUR_SERVICE_ID и YOUR_PUBLIC_KEY на реальные значения)
-    emailjs.init('dygiCGuVF3FzXaPwf'); // Ваш Public Key из личного кабинета MailJS
 
     // Открытие модального окна
     contactLink.addEventListener('click', function (e) {
@@ -169,94 +156,82 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.key === 'Escape') closeModal();
     });
 
-    // Обработка отправки формы
+    // Обработка отправки формы в Telegram
     contactForm.addEventListener('submit', async function (e) {
         e.preventDefault();
 
-        // Проверка поддержки API
-        if (typeof emailjs === 'undefined') {
-            alert('Система отправки сообщений недоступна. Пожалуйста, используйте прямой email: standard_doc@list.ru');
-            return;
-        }
-
-        // Показать окно отправки
         const sendingModal = document.getElementById('sendingModal');
         sendingModal.classList.add('active');
         document.body.style.overflow = 'hidden';
 
         try {
-            // Получить данные формы
-            const message = document.getElementById('message').value;
-            const userEmail = document.getElementById('email').value;
+            const email = document.getElementById('email').value.trim();
+            const message = document.getElementById('message').value.trim();
 
-            if (!navigator.onLine) {
-                throw new Error('Нет подключения к интернету');
+            // Проверка заполнения полей
+            if (!email || !message) {
+                throw new Error('Пожалуйста, проверьте правильность введенного email и заполнение окна сообщения');
             }
 
-            const templateParams = {
-                from_email: "standard_doc@list.ru",
-                reply_to: userEmail,
-                message: message
-            };
+            // Настройки Telegram бота
+            const botToken = '7838519001:AAHiffzIPsbTG0f28Xo6i9c3eB83uJvhAAY';
+            const chatId = '966757737';
 
-            // Логирование для отладки
-            console.log('Отправка письма с параметрами:', templateParams);
+            // Форматирование сообщения
+            const telegramText = `📩 Новое сообщение с сайта\n\n` +
+                `✉️ Email: ${email}\n` +
+                `📝 Сообщение:\n${message}`;
 
-            // Отправка с таймаутом
-            const response = await Promise.race([
-                emailjs.send('service_85os374', 'template_7viyzz9', templateParams),
-                new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('Таймаут отправки')), 35000)
-                )
-            ]);
+            // 1. Сначала отправляем простое сообщение без кнопки
+            const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: telegramText
+                })
+            });
 
-            sendingModal.classList.remove('active');
-            alert('Сообщение успешно отправлено!');
+            const result = await response.json();
+
+            if (!response.ok) {
+                console.error('Telegram API Error:', result);
+                throw new Error('Ошибка при отправке сообщения');
+            }
+
+            // Успешная отправка
+            alert('✅ Сообщение успешно отправлено!');
             contactForm.reset();
             closeModal();
         } catch (error) {
+            console.error('Ошибка:', error);
+
+            // Резервный вариант через почту
+            const email = document.getElementById('email').value;
+            const message = document.getElementById('message').value;
+            const mailtoLink = `mailto:standard_doc@list.ru?subject=Сообщение с сайта&body=Email: ${encodeURIComponent(email)}%0D%0AСообщение: ${encodeURIComponent(message)}`;
+
+            alert(`❌ ${error.message}\nПеренаправляю на почтовый клиент...`);
+            window.location.href = mailtoLink;
+        } finally {
             sendingModal.classList.remove('active');
-            console.error('Ошибка отправки:', error);
-
-            let errorMessage = 'Не удалось отправить сообщение. ';
-
-            if (error.message.includes('Таймаут')) {
-                errorMessage += 'Сервер не ответил вовремя. ';
-            } else if (error.message.includes('интернет')) {
-                errorMessage += 'Нет подключения к интернету. ';
-            }
-
-            errorMessage += 'Попробуйте позже или напишите напрямую на standard_doc@list.ru';
-
-            alert(errorMessage);
         }
     });
 });
 
-//  В яндекс метрике обработка кликов Скачать
-
-document.querySelectorAll('.template-btn').forEach(button => {
-    button.addEventListener('click', () => {
-        if (typeof ym !== 'undefined') {
-            ym(101296732, 'reachGoal', 'download_template'); // Замените ID!
-        }
-    });
-});
-
-//  Реализация скачивания шаблона
-
+// Обработка скачивания шаблонов
 document.querySelectorAll('.template-btn').forEach(button => {
     button.addEventListener('click', function (e) {
         e.preventDefault();
 
-        // Получаем имя файла из атрибута data-file
+        // Получаем имя файла
         const fileName = this.getAttribute('data-file');
         const downloadUrl = `templates/${fileName}`;
 
-        // Создаем временную ссылку для скачивания
+        // Создаем ссылку для скачивания
         const link = document.createElement('a');
         link.href = downloadUrl;
-        link.download = fileName// Указываем имя файла для сохранения
+        link.download = fileName;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -276,7 +251,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-
 // Реализация поиска
 document.querySelectorAll('.search-form').forEach(form => {
     form.addEventListener('submit', function (e) {
@@ -285,7 +259,6 @@ document.querySelectorAll('.search-form').forEach(form => {
         const searchTerm = searchInput.value.trim().toLowerCase();
 
         if (searchTerm) {
-            // Переходим на страницу всех шаблонов с параметром поиска
             navigateTo(`all-templates.html?search=${encodeURIComponent(searchTerm)}`);
         } else {
             navigateTo('all-templates.html');
@@ -293,7 +266,7 @@ document.querySelectorAll('.search-form').forEach(form => {
     });
 });
 
-// Обработка поискового запроса при загрузке страницы
+// Обработка поискового запроса
 function handleSearch() {
     const urlParams = new URLSearchParams(window.location.search);
     const searchTerm = urlParams.get('search');
@@ -304,14 +277,12 @@ function handleSearch() {
 
         cards.forEach(card => {
             const title = card.querySelector('h3').textContent.toLowerCase();
-            const description = card.querySelector('p').textContent.toLowerCase();
+            const description = card.querySelector('p')?.textContent.toLowerCase() || '';
 
             if (title.includes(searchTerm) || description.includes(searchTerm)) {
                 card.style.border = '2px solid red';
                 card.style.borderRadius = '8px';
                 found = true;
-
-                // Прокручиваем к найденной карточке
                 card.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         });
@@ -322,14 +293,15 @@ function handleSearch() {
     }
 }
 
-// Показ модального окна "Не найдено"
+// Модальное окно "Не найдено"
 function showNotFoundModal(searchTerm) {
     const modal = document.createElement('div');
     modal.className = 'not-found-modal';
     modal.innerHTML = `
         <div class="not-found-content">
             <h3>Извините, по Вашему запросу ничего не найдено</h3>
-            <p>По запросу "<strong>${searchTerm}</strong>" не удалось найти соответствующие шаблоны документов. Возможно, Вы допустили опечатку или используете слишком узкие критерии поиска.</p>
+            <p>По запросу "<strong>${searchTerm}</strong>" не удалось найти соответствующие шаблоны документов. Возможно, Вы допустили опечатку или используете слишком узкие критерии поиска.
+            </p>
             <p>Все доступные шаблоны документов представлены на этой странице. Пожалуйста, просмотрите полный каталог — возможно, Вы найдёте подходящий вариант среди имеющихся.</p>
             <p>Если Вам требуется особый шаблон, которого нет на моем сайте, Вы можете обратиться ко мне через форму обратной связи (кнопка "Написать разработчику" внизу страницы). Я рассмотрю Ваш запрос и постараюсь помочь.</p>
             <button class="close-not-found">Понятно</button>
@@ -338,34 +310,17 @@ function showNotFoundModal(searchTerm) {
 
     document.body.appendChild(modal);
 
-    // Активируем анимацию появления
-    setTimeout(() => {
-        modal.classList.add('active');
-    }, 10);
+    setTimeout(() => modal.classList.add('active'), 10);
 
-    // Функция плавного закрытия
     const closeModal = () => {
         modal.classList.remove('active');
-        setTimeout(() => {
-            modal.remove();
-        }, 300);
+        setTimeout(() => modal.remove(), 300);
     };
 
-    // Обработчики событий
     modal.querySelector('.close-not-found').addEventListener('click', closeModal);
-
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            closeModal();
-        }
-    });
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal.parentNode) {
-            closeModal();
-        }
-    });
+    modal.addEventListener('click', (e) => e.target === modal && closeModal());
+    document.addEventListener('keydown', (e) => e.key === 'Escape' && closeModal());
 }
 
-// Вызываем обработчик поиска при загрузке страницы
+// Инициализация поиска
 document.addEventListener('DOMContentLoaded', handleSearch);
